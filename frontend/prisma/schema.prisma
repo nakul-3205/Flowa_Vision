@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  clerkId    String
+  firstName  String?
+  lastName   String?
+  email      String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  chats      Chat[]
+}
+
+model Chat {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  title     String    @default("Untitled Chat")
+  messages  Message[]
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  chat       Chat     @relation(fields: [chatId], references: [id])
+  chatId     String
+  senderType SenderType
+  promptText String?
+  userImage  String?
+  aiImage    String?
+  createdAt  DateTime @default(now())
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  level     LogLevel
+  service   String
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+model Metric {
+  id        String   @id @default(uuid())
+  type      String   // "ai_performance" or "user_behavior" or specific name
+  value     Float
+  userId    String?  // optional if metric belongs to a user
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+
+enum SenderType {
+  USER
+  AI
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  DEBUG
+}
